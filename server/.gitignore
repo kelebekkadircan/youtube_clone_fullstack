@@ -27,6 +27,7 @@ chrome-user-data
 .env.development.local
 .env.test.local
 .env.production.local
+.env
 
 packages/react-devtools-core/dist
 packages/react-devtools-extensions/chrome/build
