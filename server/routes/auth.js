@@ -3,15 +3,13 @@ import { signin, signup } from '../controllers/authController.js';
 
 const router = express.Router()
 
-
 // Create a user
 router.post("/signup", signup)
 
-// Sign In
+// Sign in
 router.post("/signin", signin)
 
-
-// Google Authentication
+// Google Auth
 router.post("/google",)
 
 
@@ -20,12 +18,3 @@ router.post("/google",)
 
 
 export default router;
-
-
-
-
-
-
-
-
-

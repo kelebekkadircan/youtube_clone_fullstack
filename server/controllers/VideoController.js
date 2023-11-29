@@ -1,36 +1,31 @@
 import { createError } from '../error.js';
-import Video from '../models/VideoModal.js';
+import Video from '../models/VideoModel.js';
 import User from '../models/UserModel.js';
+
 
 export const addVideo = async (req, res, next) => {
 
     const newVideo = new Video({ userId: req.user.id, ...req.body });
 
     try {
-
-        const savedVideo = newVideo.save()
+        const savedVideo = await newVideo.save();
         res.status(200).json(savedVideo);
-
 
 
     } catch (err) {
         next(err)
     }
 
-
 }
 
 export const updateVideo = async (req, res, next) => {
 
     try {
-        const video = await Video.findById(req.params.id)
-
-        if (!video) {
-            return next(createError(404, "There is no video"))
-        }
-
-        if (req.user.id === video.userId) {
-            const updatedVideo = await Video.findByIdAndUpdate(req.params.id,
+        const video = await Video.findById(req.params.id);
+        if (!video) return next(createError(404, "Video not found!"));
+        if (req.user.id === video.user.id) {
+            const updatedVideo = await Video.findByIdAndUpdate(
+                req.params.id,
                 {
                     $set: req.body
                 },
@@ -41,7 +36,7 @@ export const updateVideo = async (req, res, next) => {
             res.status(200).json(updatedVideo)
         }
         else {
-            return next(createError(403, "You can update only your video!"))
+            return next(createError(403, "You can update only your videos"))
         }
 
 
@@ -49,28 +44,26 @@ export const updateVideo = async (req, res, next) => {
         next(err)
     }
 
+
 }
 
 export const deleteVideo = async (req, res, next) => {
 
+
     try {
-
-        const video = await Video.findById(req.params.id)
-
-        if (!video) {
-            return next(createError(404, "There is no video"))
-        }
-
-        if (req.user.id === video.userId) {
+        const video = await Video.findById(req.params.id);
+        if (!video) return next(createError(404, "Video not found!"));
+        if (req.user.id === video.user.id) {
             await Video.findByIdAndDelete(
-                req.params.id
+                req.params.id,
             )
-            res.status(200).json("The Video has been deleted")
+            res.status(200).json(
+                "The video has been deleted"
+            )
         }
         else {
-            return next(createError(403, "You can delete only your video"))
+            return next(createError(403, "You can update only your videos"))
         }
-
 
 
     } catch (err) {
@@ -81,12 +74,10 @@ export const deleteVideo = async (req, res, next) => {
 
 export const getVideo = async (req, res, next) => {
 
-    try {
 
+    try {
         const video = await Video.findById(req.params.id)
         res.status(200).json(video)
-
-
 
 
     } catch (err) {
@@ -94,42 +85,27 @@ export const getVideo = async (req, res, next) => {
     }
 
 }
-
 export const addView = async (req, res, next) => {
 
-    try {
 
+    try {
         await Video.findByIdAndUpdate(req.params.id, {
             $inc: { views: 1 }
         })
         res.status(200).json("The view has been increased")
 
 
-
-
     } catch (err) {
         next(err)
     }
 
 }
-
 export const random = async (req, res, next) => {
 
+
     try {
-
-        const videos = await Video.aggregate(
-            [
-                {
-                    $sample:
-                    {
-                        size: 1
-                    }
-                }
-            ]
-        )
-        res.status(200).json(videos)
-
-
+        const randomVideos = await Video.aggregate([{ $sample: { size: 40 } }]);
+        res.status(200).json(randomVideos)
 
 
     } catch (err) {
@@ -140,12 +116,10 @@ export const random = async (req, res, next) => {
 
 export const trend = async (req, res, next) => {
 
+
     try {
-
-        const videos = await Video.find().sort({ views: -1 })
-        res.status(200).json(videos)
-
-
+        const trendVideos = await Video.find().sort({ views: -1 });
+        res.status(200).json(trendVideos)
 
 
     } catch (err) {
@@ -154,24 +128,19 @@ export const trend = async (req, res, next) => {
 
 }
 
-export const sub = async (req, res, next) => {
+export const subscribe = async (req, res, next) => {
+
 
     try {
-
         const user = await User.findById(req.user.id)
         const subscribedChannels = user.subscribedUsers;
-
         const list = await Promise.all(
             subscribedChannels.map((channelId) => {
                 return Video.find({ userId: channelId })
             })
-        );
+        )
 
-        res.status(200).json(list.flat().sort((a, b) => b.createdAt - a.createdAt));
-
-
-
-
+        res.status(200).json(list.flat().sort((a, b) => b.createdAt - a.createdAt))
 
 
     } catch (err) {
@@ -183,17 +152,17 @@ export const sub = async (req, res, next) => {
 export const getByTag = async (req, res, next) => {
 
     const tags = req.query.tags.split(",")
-    console.log(tags);
+
+
 
     try {
+        const tagVideos = await Video.find({ tags: { $in: tags } }).limit(20);
+        res.status(200).json(tagVideos)
 
-        const videos = await Video.find({ tags: { $in: tags } }).limit(20);
-        res.status(200).json(videos)
 
     } catch (err) {
         next(err)
     }
-
 
 }
 
@@ -203,15 +172,12 @@ export const search = async (req, res, next) => {
 
 
     try {
+        const trendVideos = await Video.find({ title: { $regex: query, $options: "i" } }).limit(40);
+        res.status(200).json(trendVideos)
 
-        const videos = await Video.find({
-            title: { $regex: query, $options: "i" }
-        }).limit(40);
-        res.status(200).json(videos)
 
     } catch (err) {
         next(err)
     }
 
 }
-
