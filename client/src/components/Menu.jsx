@@ -179,6 +179,15 @@ const Menu = ({ darkMode, setDarkMode }) => {
           <SettingsBrightnessOutlinedIcon />
           {darkMode ? "Light" : "Dark"} Mode
         </Item>
+        {currentUser && <Login>
+
+          <Link to="signin" style={{ textDecoration: "none" }}>
+            <Button>
+              <AccountCircleOutlinedIcon />
+              Logout
+            </Button>
+          </Link>
+        </Login>}
       </Wrapper>
     </Container>
   );
