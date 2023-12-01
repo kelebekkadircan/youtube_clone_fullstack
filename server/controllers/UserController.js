@@ -59,7 +59,7 @@ export const subscribe = async (req, res, next) => {
             $push: { subscribedUsers: req.params.id }
         })
         await User.findByIdAndUpdate(req.params.id, {
-            $inc: { subscribers: 1 },
+            $inc: { subscribers: +1 },
         })
         res.status(200).json("Subscription succesfull")
 
